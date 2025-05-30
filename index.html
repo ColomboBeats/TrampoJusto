@@ -1,0 +1,180 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>TrampoJusto</title>
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #0d1b2a;
+      color: #ffffff;
+    }
+    header {
+      padding: 2rem;
+      text-align: center;
+      background: #1b263b;
+    }
+    header h1 {
+      font-size: 2.5rem;
+      margin: 0;
+    }
+    header p {
+      font-size: 1.2rem;
+      margin-top: 0.5rem;
+    }
+    nav {
+      display: flex;
+      justify-content: center;
+      gap: 2rem;
+      background-color: #1b263b;
+      padding: 1rem 0;
+    }
+    nav a {
+      color: #ffffff;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    nav a.active, nav a:hover {
+      text-decoration: underline;
+    }
+    main {
+      padding: 2rem;
+      max-width: 1000px;
+      margin: auto;
+    }
+    .avaliacao-card {
+      background: #32445a;
+      border-radius: 8px;
+      padding: 1rem;
+      margin-bottom: 1rem;
+    }
+    footer {
+      text-align: center;
+      padding: 1rem;
+      background: #1b263b;
+      font-size: 0.9rem;
+      color: #ccc;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>TrampoJusto</h1>
+    <p>Descubra como é trabalhar nas empresas brasileiras</p>
+    <p>Salários, crescimento, ambiente de trabalho e benefícios analisados com transparência.</p>
+  </header>
+
+  <nav>
+    <a href="#home" class="active">Início</a>
+    <a href="#avaliacoes">Avaliações</a>
+    <a href="#cadastrar">Cadastrar Avaliação</a>
+  </nav>
+
+  <main>
+    <section id="avaliacoes">
+      <h2>Avaliações Recentes</h2>
+      <div id="listaAvaliacoes"></div>
+    </section>
+
+    <section id="cadastrar">
+      <h2>Deixe sua Avaliação</h2>
+      <form id="formAvaliacao">
+        <label>Empresa: <input type="text" name="empresa" required /></label><br/><br/>
+        <label>Categoria:
+          <select name="categoria" required>
+            <option value="salario">Salário</option>
+            <option value="ambiente">Ambiente</option>
+            <option value="beneficios">Benefícios</option>
+            <option value="crescimento">Crescimento</option>
+          </select>
+        </label><br/><br/>
+        <label>Nota (1 a 5): <input type="number" name="nota" min="1" max="5" required /></label><br/><br/>
+        <label>Comentário:<br/>
+          <textarea name="comentario" rows="4" required></textarea>
+        </label><br/><br/>
+        <button type="submit">Enviar Avaliação</button>
+      </form>
+      <p id="mensagemSucesso" style="display:none; color:lightgreen;">Avaliação enviada com sucesso!</p>
+      <p id="mensagemErro" style="display:none; color:tomato;">Por favor, preencha todos os campos.</p>
+    </section>
+  </main>
+
+  <footer>
+    &copy; 2025 TrampoJusto - Transparência sobre o mundo do trabalho no Brasil
+  </footer>
+
+  <script>
+    function capitalize(str) {
+      return str.charAt(0).toUpperCase() + str.slice(1);
+    }
+
+    function carregarAvaliacoes() {
+      return JSON.parse(localStorage.getItem("avaliacoes") || "[]");
+    }
+
+    function salvarAvaliacoes(avaliacoes) {
+      localStorage.setItem("avaliacoes", JSON.stringify(avaliacoes));
+    }
+
+    function exibirAvaliacoes(filtro = null) {
+      const lista = document.getElementById("listaAvaliacoes");
+      const avaliacoes = carregarAvaliacoes();
+      lista.innerHTML = "";
+
+      const filtradas = filtro ? avaliacoes.filter(av => av.categoria === filtro) : avaliacoes;
+
+      if (filtradas.length === 0) {
+        lista.innerHTML = "<p style='text-align:center; color:#ccc;'>Nenhuma avaliação encontrada.</p>";
+        return;
+      }
+
+      filtradas.forEach(av => {
+        const card = document.createElement("div");
+        card.classList.add("avaliacao-card");
+
+        card.innerHTML = `
+          <div><strong>Empresa:</strong> ${av.empresa}</div>
+          <div><strong>Nota:</strong> ${av.nota}/5</div>
+          <div><strong>Categoria:</strong> ${capitalize(av.categoria)}</div>
+          <div><strong>Comentário:</strong> "${av.comentario}"</div>
+        `;
+        lista.appendChild(card);
+      });
+    }
+
+    const form = document.getElementById("formAvaliacao");
+    const mensagemSucesso = document.getElementById("mensagemSucesso");
+    const mensagemErro = document.getElementById("mensagemErro");
+
+    form.addEventListener("submit", function (e) {
+      e.preventDefault();
+      const empresa = form.empresa.value.trim();
+      const categoria = form.categoria.value;
+      const nota = form.nota.value;
+      const comentario = form.comentario.value.trim();
+
+      if (!empresa || !categoria || !nota || !comentario) {
+        mensagemErro.style.display = "block";
+        mensagemSucesso.style.display = "none";
+        return;
+      }
+
+      const novaAvaliacao = { empresa, categoria, nota, comentario };
+      const avaliacoes = carregarAvaliacoes();
+      avaliacoes.unshift(novaAvaliacao);
+      salvarAvaliacoes(avaliacoes);
+      exibirAvaliacoes();
+
+      form.reset();
+      mensagemErro.style.display = "none";
+      mensagemSucesso.style.display = "block";
+      setTimeout(() => mensagemSucesso.style.display = "none", 4000);
+    });
+
+    window.addEventListener("load", () => exibirAvaliacoes());
+  </script>
+</body>
+</html>
