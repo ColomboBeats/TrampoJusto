@@ -1,0 +1,79 @@
+  const filtradas = filtro ? avaliacoes.filter(av => av.categoria === filtro) : avaliacoes;
+
+  if (filtradas.length === 0) {
+    lista.innerHTML = "<p style='text-align:center; color:#555;'>Nenhuma avaliação encontrada.</p>";
+    return;
+  }
+
+  filtradas.forEach(av => {
+    const card = document.createElement("div");
+    card.classList.add("avaliacao-card");
+
+    card.innerHTML = `
+      <div class="avaliacao-empresa">${av.empresa}</div>
+      <div class="avaliacao-nota">Nota: ${av.nota}/5</div>
+      <div class="avaliacao-item-detail">Categoria: ${capitalize(av.categoria)}</div>
+      <div class="avaliacao-comentario">"${av.comentario}"</div>
+    `;
+    lista.appendChild(card);
+  });
+}
+
+// Formulário de avaliação
+const form = document.getElementById("formAvaliacao");
+const mensagemSucesso = document.getElementById("mensagemSucesso");
+const mensagemErro = document.getElementById("mensagemErro");
+
+form.addEventListener("submit", function (e) {
+  e.preventDefault();
+
+  const empresa = form.empresa.value.trim();
+  const categoria = form.categoria.value;
+  const nota = form.nota.value;
+  const comentario = form.comentario.value.trim();
+
+  if (!empresa || !categoria || !nota || !comentario) {
+    mensagemErro.style.display = "block";
+    mensagemSucesso.style.display = "none";
+    return;
+  }
+
+  const novaAvaliacao = { empresa, categoria, nota, comentario };
+  const avaliacoes = carregarAvaliacoes();
+  avaliacoes.unshift(novaAvaliacao);
+  salvarAvaliacoes(avaliacoes);
+  exibirAvaliacoes();
+
+  form.reset();
+  mensagemErro.style.display = "none";
+  mensagemSucesso.style.display = "block";
+
+  setTimeout(() => {
+    mensagemSucesso.style.display = "none";
+  }, 4000);
+});
+
+// Filtro por categoria
+const categoriaCards = document.querySelectorAll(".categoria-card");
+categoriaCards.forEach(card => {
+  card.addEventListener("click", () => {
+    categoriaCards.forEach(c => c.setAttribute("aria-pressed", "false"));
+    card.setAttribute("aria-pressed", "true");
+    const categoria = card.getAttribute("data-category");
+    exibirAvaliacoes(categoria);
+  });
+});
+
+// Ao carregar
+window.addEventListener("load", () => {
+  exibirAvaliacoes();
+});
+
+// Menu ativo
+const navLinks = document.querySelectorAll("nav a");
+navLinks.forEach(link => {
+  link.addEventListener("click", e => {
+    navLinks.forEach(l => l.classList.remove("active"));
+    e.target.classList.add("active");
+  });
+});
